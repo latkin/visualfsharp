@@ -48,7 +48,7 @@ namespace Microsoft.FSharp.Core
         let filter f inp = match inp with None -> None | Some x -> if f x then Some x else None
 
         [<CompiledName("ToArray")>]
-        let toArray option = match option with  None -> [| |] | Some x -> [| x |]
+        let toArray option = match option with  None -> Microsoft.FSharp.Primitives.Basics.Array.EmptyStorage.Empty | Some x -> [| x |]
 
         [<CompiledName("ToList")>]
         let toList option = match option with  None -> [ ] | Some x -> [ x ]

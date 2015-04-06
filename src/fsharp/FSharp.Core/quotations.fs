@@ -893,7 +893,7 @@ module Patterns =
     let instFormal (typarEnv: Type[]) (ty:Instantiable<'T>) = ty (fun i -> typarEnv.[i])
 
     let getGenericArguments(tc:Type) = 
-        if tc.IsGenericType then tc.GetGenericArguments() else [| |] 
+        if tc.IsGenericType then tc.GetGenericArguments() else Array.empty 
 
     let getNumGenericArguments(tc:Type) = 
         if tc.IsGenericType then tc.GetGenericArguments().Length else 0
@@ -910,7 +910,7 @@ module Patterns =
             // Second, type match. 
             let select (methInfo:MethodInfo) =
                 // mref implied Types 
-                let mtyargTIs = if methInfo.IsGenericMethod then methInfo.GetGenericArguments() else [| |] 
+                let mtyargTIs = if methInfo.IsGenericMethod then methInfo.GetGenericArguments() else Array.empty 
                 if mtyargTIs.Length  <> marity then false (* method generic arity mismatch *) else
                 let typarEnv = (Array.append tyargTs mtyargTIs) 
                 let argTs = argtys |> List.map (instFormal typarEnv) 
@@ -933,7 +933,7 @@ module Patterns =
     let bindMethodHelper (parentT: Type, nm,marity,argtys,rty) =
       if parentT = null then invalidArg "parentT" (SR.GetString(SR.QparentCannotBeNull))
       if marity = 0 then 
-          let tyargTs = if parentT.IsGenericType then parentT.GetGenericArguments() else [| |] 
+          let tyargTs = if parentT.IsGenericType then parentT.GetGenericArguments() else Array.empty 
           let argTs = Array.ofList (List.map (instFormal tyargTs) argtys) 
           let resT  = instFormal tyargTs rty 
           let methInfo = 
@@ -1239,7 +1239,7 @@ module Patterns =
             let phase2data = 
                 let st2 = 
                    { is = new ByteStream(phase2bytes,0,phase2bytes.Length)
-                     istrings = [| |]
+                     istrings = Array.empty
                      localAssembly=localAssembly
                      referencedTypeDefs=referencedTypeDefs  }
                 u_tup2 (u_list prim_u_string) u_bytes st2 
@@ -1759,7 +1759,7 @@ module Patterns =
                     let resources = 
                         // This raises NotSupportedException for dynamic assemblies
                         try assem.GetManifestResourceNames()  
-                        with :? NotSupportedException -> [| |]
+                        with :? NotSupportedException -> Array.empty
                     [ for resourceName in resources do
                           if resourceName.StartsWith(ReflectedDefinitionsResourceNameBase,StringComparison.Ordinal) &&
                              not (decodedTopResources.ContainsKey((assem,resourceName))) then 
@@ -1770,7 +1770,7 @@ module Patterns =
 #else
                                 assem.GetCustomAttributes(typeof<CompilationMappingAttribute>, false)
 #endif
-                                |> (function null -> [| |] | x -> x)
+                                |> (function null -> Array.empty | x -> x)
                                 |> Array.tryPick (fun ca -> 
                                      match ca with 
                                      | :? CompilationMappingAttribute as cma when cma.ResourceName = resourceName -> Some cma 
@@ -1778,7 +1778,7 @@ module Patterns =
                             let resourceBytes = readToEnd (assem.GetManifestResourceStream(resourceName))
                             let referencedTypes = 
                                 match cmaAttribForResource with 
-                                | None -> [| |]
+                                | None -> Array.empty
                                 | Some cma -> cma.TypeDefinitions
                             yield (resourceName,unpickleReflectedDefns assem referencedTypes resourceBytes) ]
                 
@@ -1817,13 +1817,13 @@ module Patterns =
                let tyargs = 
                    Array.append
                        (getGenericArguments minfo.DeclaringType)
-                       (if minfo.IsGenericMethod then minfo.GetGenericArguments() else [| |])
+                       (if minfo.IsGenericMethod then minfo.GetGenericArguments() else Array.empty)
                tryGetReflectedDefinition (methodBase, tyargs)
         | :? ConstructorInfo as cinfo -> 
                let tyargs = getGenericArguments cinfo.DeclaringType
                tryGetReflectedDefinition (methodBase, tyargs)
         | _ -> 
-               tryGetReflectedDefinition (methodBase, [| |])
+               tryGetReflectedDefinition (methodBase, Array.empty)
 
     let deserialize (localAssembly, referencedTypeDefs, spliceTypes, spliceExprs, bytes) : Expr = 
         let expr = unpickleExpr localAssembly referencedTypeDefs bytes (envClosed spliceTypes)
@@ -2003,7 +2003,7 @@ type Expr with
     static member Deserialize(qualifyingType:Type, spliceTypes, spliceExprs, bytes: byte[]) = 
         checkNonNull "qualifyingType" qualifyingType
         checkNonNull "bytes" bytes
-        deserialize (qualifyingType, [| |], Array.ofList spliceTypes, Array.ofList spliceExprs, bytes)
+        deserialize (qualifyingType, Array.empty, Array.ofList spliceTypes, Array.ofList spliceExprs, bytes)
 
     static member Deserialize40(qualifyingType:Type, referencedTypeDefs, spliceTypes, spliceExprs, bytes: byte[]) = 
         checkNonNull "spliceExprs" spliceExprs
@@ -2014,7 +2014,7 @@ type Expr with
         deserialize (qualifyingType, referencedTypeDefs, spliceTypes, spliceExprs, bytes)
 
     static member RegisterReflectedDefinitions(assembly, resourceName, bytes) = 
-        Expr.RegisterReflectedDefinitions(assembly, resourceName, bytes, [| |]) 
+        Expr.RegisterReflectedDefinitions(assembly, resourceName, bytes, Array.empty) 
 
     static member RegisterReflectedDefinitions(assembly, resourceName, bytes, referencedTypeDefs) = 
         checkNonNull "assembly" assembly

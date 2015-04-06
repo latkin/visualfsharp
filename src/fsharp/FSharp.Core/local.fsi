@@ -43,6 +43,10 @@ module internal List =
 module internal Array =
     // The input parameter should be checked by callers if necessary
     val inline zeroCreateUnchecked : int -> 'T[]
+    
+    [<AbstractClass; Sealed>]
+    type internal EmptyStorage<'T> =
+        static member Empty : 'T []
 
     val inline init : int -> (int -> 'T) -> 'T[]
 

@@ -120,7 +120,7 @@ module ReflectionAdapters =
         member this.GetGenericArguments() = 
             if this.IsGenericTypeDefinition then this.GetTypeInfo().GenericTypeParameters
             elif this.IsGenericType then this.GenericTypeArguments
-            else [||]
+            else Array.empty
         member this.BaseType = this.GetTypeInfo().BaseType
         member this.GetConstructor(parameterTypes : Type[]) = 
             this.GetTypeInfo().DeclaredConstructors
@@ -482,19 +482,19 @@ module internal Impl =
     let fieldsPropsOfUnionCase(typ:Type, tag:int, bindingFlags) =
         if isOptionType typ then 
             match tag with 
-            | 0 (* None *) -> getInstancePropertyInfos (typ,[| |],bindingFlags) 
+            | 0 (* None *) -> getInstancePropertyInfos (typ,Array.empty,bindingFlags) 
             | 1 (* Some *) -> getInstancePropertyInfos (typ,[| "Value" |] ,bindingFlags) 
             | _ -> failwith "fieldsPropsOfUnionCase"
         elif isListType typ then 
             match tag with 
-            | 0 (* Nil *)  -> getInstancePropertyInfos (typ,[| |],bindingFlags) 
+            | 0 (* Nil *)  -> getInstancePropertyInfos (typ,Array.empty,bindingFlags) 
             | 1 (* Cons *) -> getInstancePropertyInfos (typ,[| "Head"; "Tail" |],bindingFlags) 
             | _ -> failwith "fieldsPropsOfUnionCase"
         else
             // Lookup the type holding the fields for the union case
             let caseTyp = getUnionCaseTyp (typ, tag, bindingFlags)
             match caseTyp with 
-            | null ->  [| |]
+            | null ->  Array.empty
             | _ ->  caseTyp.GetProperties(instancePropertyFlags ||| bindingFlags) 
                     |> Array.filter isFieldProperty
                     |> Array.filter (fun prop -> variantNumberOfMember prop = tag)
@@ -565,7 +565,7 @@ module internal Impl =
                 invalidArg "unionType" (SR.GetString1(SR.privateUnionType, unionType.FullName))
             else
                 invalidArg "unionType" (SR.GetString1(SR.notAUnionType, unionType.FullName))
-    let emptyObjArray : obj[] = [| |]
+    let emptyObjArray : obj[] = Array.empty
 
     //-----------------------------------------------------------------
     // TUPLE DECOMPILATION

@@ -750,6 +750,11 @@ module internal Array =
     let inline zeroCreateUnchecked (count:int) = 
         (# "newarr !0" type ('T) count : 'T array #)
 
+    [<AbstractClass; Sealed>]
+    type internal EmptyStorage<'T>() =
+        static let empty : 'T[] = zeroCreateUnchecked 0
+        static member Empty = empty
+        
     let inline init (count:int) (f: int -> 'T) = 
         if count < 0 then invalidArg "count" LanguagePrimitives.ErrorStrings.InputMustBeNonNegativeString
         let arr = (zeroCreateUnchecked count : 'T array)  
@@ -801,7 +806,7 @@ module internal Array =
 
     let mapFold f acc (array : _[]) =
         match array.Length with
-        | 0 -> [| |], acc
+        | 0 -> EmptyStorage.Empty, acc
         | len ->
             let f = OptimizedClosures.FSharpFunc<_,_,_>.Adapt(f)
             let mutable acc = acc
@@ -814,7 +819,7 @@ module internal Array =
 
     let mapFoldBack f (array : _[]) acc =
         match array.Length with
-        | 0 -> [| |], acc
+        | 0 -> EmptyStorage.Empty, acc
         | len ->
             let f = OptimizedClosures.FSharpFunc<_,_,_>.Adapt(f)
             let mutable acc = acc
@@ -925,7 +930,7 @@ module internal Array =
     let splitInto count (array : 'T[]) =
         let len = array.Length
         if len = 0 then
-            [| |]
+            EmptyStorage.Empty
         else
             let count = min count len
             let res = zeroCreateUnchecked count : 'T[][]

@@ -331,7 +331,7 @@ namespace Microsoft.FSharp.Control
     /// We use our own internal implementation of queues to avoid a dependency on System.dll
     type Queue<'T>() =  //: IEnumerable<T>, ICollection, IEnumerable
     
-        let mutable array = [| |]
+        let mutable array = Array.empty
         let mutable head = 0
         let mutable size = 0
         let mutable tail = 0
@@ -1408,7 +1408,7 @@ namespace Microsoft.FSharp.Control
                 match result with
                 | Some r -> r
                 | None ->
-                if tasks.Length = 0 then args.cont [| |] else  // must not be in a 'protect' if we call cont explicitly; if cont throws, it should unwind the stack, preserving Dev10 behavior
+                if tasks.Length = 0 then args.cont Array.empty else  // must not be in a 'protect' if we call cont explicitly; if cont throws, it should unwind the stack, preserving Dev10 behavior
                 protectedPrimitiveCore args (fun args ->
                     let ({ aux = aux } as args) = delimitSyncContext args  // manually resync
                     let count = ref tasks.Length

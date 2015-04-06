@@ -77,14 +77,9 @@ namespace Microsoft.FSharp.Collections
             if array.Length = 0 then invalidArg "array" (SR.GetString(SR.notEnoughElements))
             let len = array.Length - 1
             Microsoft.FSharp.Primitives.Basics.Array.subUnchecked 1 len array
-    
-        [<AbstractClass; Sealed>]
-        type internal EmptyStorage<'T>() =
-            static let empty = (zeroCreate 0 : 'T[])
-            static member Empty = empty
 
         [<CompiledName("Empty")>]
-        let empty<'T> = EmptyStorage<'T>.Empty
+        let empty<'T> = Microsoft.FSharp.Primitives.Basics.Array.EmptyStorage<'T>.Empty
 
         [<CodeAnalysis.SuppressMessage("Microsoft.Naming","CA1704:IdentifiersShouldBeSpelledCorrectly")>]
         [<CompiledName("CopyTo")>]
@@ -147,10 +142,10 @@ namespace Microsoft.FSharp.Collections
             if array.Length < index then raise <| System.InvalidOperationException (SR.GetString(SR.notEnoughElements))
             if index = 0 then
                 let right = Microsoft.FSharp.Primitives.Basics.Array.subUnchecked 0 array.Length array
-                [||],right
+                empty,right
             elif index = array.Length then
                 let left = Microsoft.FSharp.Primitives.Basics.Array.subUnchecked 0 array.Length array
-                left,[||] else
+                left,empty else
 
             let res1 = Microsoft.FSharp.Primitives.Basics.Array.subUnchecked 0 index array
             let res2 = Microsoft.FSharp.Primitives.Basics.Array.subUnchecked index (array.Length-index) array
@@ -525,7 +520,7 @@ namespace Microsoft.FSharp.Collections
             checkNonNull "array" array
             if count > array.Length then invalidArg "count" (SR.GetString(SR.outOfRange))
             if count = array.Length then
-                [| |]
+                empty
             else
                 let count = max count 0
                 Microsoft.FSharp.Primitives.Basics.Array.subUnchecked count (array.Length - count) array
@@ -538,7 +533,7 @@ namespace Microsoft.FSharp.Collections
             while i < len && p array.[i] do i <- i + 1
 
             match len - i with
-            | 0 -> [| |]
+            | 0 -> empty
             | resLen ->
                 Microsoft.FSharp.Primitives.Basics.Array.subUnchecked i resLen array
 
@@ -568,7 +563,7 @@ namespace Microsoft.FSharp.Collections
             if windowSize <= 0 then invalidArg "windowSize" (SR.GetString(SR.inputMustBePositive))
             let len = array.Length
             if windowSize > len then
-                [| |]
+                empty
             else
                 let res = Microsoft.FSharp.Primitives.Basics.Array.zeroCreateUnchecked (len - windowSize + 1) : 'T[][]
                 for i = 0 to len - windowSize do
@@ -581,7 +576,7 @@ namespace Microsoft.FSharp.Collections
             if chunkSize <= 0 then invalidArg "chunkSize" (SR.GetString(SR.inputMustBePositive))
             let len = array.Length
             if len = 0 then
-                [| |]
+                empty
             else if chunkSize > len then
                 [| copy array |]
             else
@@ -751,7 +746,7 @@ namespace Microsoft.FSharp.Collections
         [<CompiledName("Pairwise")>]
         let pairwise (array: 'T[]) =
             checkNonNull "array" array
-            if array.Length < 2 then [||] else
+            if array.Length < 2 then empty else
             init (array.Length-1) (fun i -> array.[i],array.[i+1])
 
         [<CompiledName("Reduce")>]
