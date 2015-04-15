@@ -256,6 +256,7 @@ let WritePdbInfo fixupOverlappingSequencePoints showTimes f fpdb info =
     let spCounts =  info.Methods |> Array.map (fun x -> x.SequencePoints.Length)
     let allSps = Array.concat (Array.map (fun x -> x.SequencePoints) info.Methods |> Array.toList)
     let allSps = Array.mapi (fun i sp -> (i,sp)) allSps
+    reportTime showTimes (sprintf "PDB: Init allSps %d" allSps.Length);
     if fixupOverlappingSequencePoints then 
         // sort the sequence points into source order 
         Array.sortInPlaceWith (fun (_,sp1) (_,sp2) -> SequencePoint.orderBySource sp1 sp2) allSps;
@@ -278,8 +279,6 @@ let WritePdbInfo fixupOverlappingSequencePoints showTimes f fpdb info =
     let spOffset = ref 0
     info.Methods |> Array.iteri (fun i minfo ->
 
-          let sps = Array.sub allSps !spOffset spCounts.[i]
-          spOffset := !spOffset + spCounts.[i];
           begin match minfo.Range with 
           | None -> () 
           | Some (a,b) ->
@@ -289,30 +288,37 @@ let WritePdbInfo fixupOverlappingSequencePoints showTimes f fpdb info =
                 (getDocument a.Document) a.Line a.Column
                 (getDocument b.Document) b.Line b.Column;
 
-              // Partition the sequence points by document 
-              let spsets =
-                let res = (Map.empty : Map<int,PdbSequencePoint list ref>)
-                let add res (_,sp) = 
-                  let k = sp.Document
-                  match Map.tryFind k res with
-                      Some xsR -> xsR := sp :: !xsR; res
-                    | None     -> Map.add k (ref [sp]) res
-               
-                let res = Array.fold add res sps
-                let res = Map.toList res  // ordering may not be stable 
-                List.map (fun (_,x) -> Array.ofList !x) res
+              match spCounts.[i] with
+              | 0 -> ()
+              | spCount -> 
+                  // Partition the sequence points by document 
+                  let spsets =
+                    if spCount = 1 then
+                        [| [| snd allSps.[!spOffset] |] |] :> seq<_>
+                    else
+                        let res = Dictionary<int, PdbSequencePoint list ref>(1) //(Map.empty : Map<int,PdbSequencePoint list ref>)
+                        for j = !spOffset to (!spOffset + spCount - 1) do
+                            let (_,sp) = allSps.[j]
+                            let k = sp.Document
+                            match res.TryGetValue(k) with
+                            | (true, xsR) -> xsR := sp :: !xsR
+                            | _  -> res.Add(k, ref [sp])
 
-              spsets |> List.iter (fun spset -> 
-                  if spset.Length > 0 then 
-                    Array.sortInPlaceWith SequencePoint.orderByOffset spset;
-                    let sps = 
-                      spset |> Array.map (fun sp -> 
-                           // Ildiag.dprintf "token 0x%08lx has an sp at offset 0x%08x\n" minfo.MethToken sp.Offset; 
-                           (sp.Offset, sp.Line, sp.Column,sp.EndLine, sp.EndColumn)) 
-                  // Use of alloca in implementation of pdbDefineSequencePoints can give stack overflow here 
-                    if sps.Length < 5000 then 
-                      pdbDefineSequencePoints !pdbw (getDocument spset.[0].Document) sps;);
+                    //    let sps = Array.sub allSps !spOffset spCount
+                    //    let res = Array.fold add res sps
+                    //    let res = Map.toList res  // ordering may not be stable
+                        res.Values |> Seq.map (fun x -> Array.ofList !x )
+                 //       List.map (fun (_,x) -> Array.ofList !x) res
 
+                  spsets |> Seq.iter (fun spset -> 
+                      if spset.Length > 0 && spset.Length < 5000 then 
+                        Array.sortInPlaceWith SequencePoint.orderByOffset spset
+                        let offsets = spset |> Array.map (fun sp -> sp.Offset)
+                        let lines = spset |> Array.map (fun sp -> sp.Line)
+                        let columns = spset |> Array.map (fun sp -> sp.Column)
+                        let endLines = spset |> Array.map (fun sp -> sp.EndLine)
+                        let endColumns = spset |> Array.map (fun sp -> sp.EndColumn)
+                        pdbDefineSequencePoints !pdbw (getDocument spset.[0].Document) spset.Length offsets lines columns endLines endColumns)
               // Write the scopes 
               let rec writePdbScope top sco = 
                   if top || sco.Locals.Length <> 0 || sco.Children.Length <> 0 then 
@@ -323,7 +329,9 @@ let WritePdbInfo fixupOverlappingSequencePoints showTimes f fpdb info =
               writePdbScope true minfo.RootScope; 
 
               pdbCloseMethod !pdbw
-          end);
+          
+          end
+          spOffset := !spOffset + spCounts.[i];);
     reportTime showTimes "PDB: Wrote methods";
     let res = pdbGetDebugInfo !pdbw
     

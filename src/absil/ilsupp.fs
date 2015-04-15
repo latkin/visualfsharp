@@ -1128,13 +1128,8 @@ let pdbDefineLocalVariable (writer:PdbWriter) (name:string) (signature:byte[]) (
 let pdbSetMethodRange (writer:PdbWriter) (docWriter1: PdbDocumentWriter) (startLine:int) (startCol:int) (docWriter2: PdbDocumentWriter) (endLine:int) (endCol:int) = 
     writer.symWriter.SetMethodSourceRange(docWriter1.symDocWriter, startLine, startCol, docWriter2.symDocWriter, endLine, endCol)
 
-let pdbDefineSequencePoints (writer:PdbWriter) (docWriter: PdbDocumentWriter) (pts: (int * int * int * int * int) array)  = 
-    let offsets = (Array.map (fun (x,_,_,_,_) -> x) pts) 
-    let lines = (Array.map (fun (_,x,_,_,_) -> x) pts) 
-    let columns = (Array.map (fun (_,_,x,_,_) -> x) pts) 
-    let endLines = (Array.map (fun (_,_,_,x,_) -> x) pts)  
-    let endColumns = (Array.map (fun (_,_,_,_,x) -> x) pts) 
-    writer.symWriter.DefineSequencePoints(docWriter.symDocWriter, pts.Length, offsets, lines, columns, endLines, endColumns)
+let pdbDefineSequencePoints (writer:PdbWriter) (docWriter: PdbDocumentWriter) count offsets lines columns endLines endColumns = 
+    writer.symWriter.DefineSequencePoints(docWriter.symDocWriter, count, offsets, lines, columns, endLines, endColumns)
 
 let pdbGetDebugInfo (writer: PdbWriter) = 
     let mutable iDD = new ImageDebugDirectory()

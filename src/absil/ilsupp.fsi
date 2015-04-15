@@ -105,7 +105,7 @@ val pdbOpenScope: PdbWriter -> int -> unit
 val pdbCloseScope: PdbWriter -> int -> unit
 val pdbDefineLocalVariable: PdbWriter -> string -> byte[] -> int32 -> unit
 val pdbSetMethodRange: PdbWriter -> PdbDocumentWriter -> int -> int -> PdbDocumentWriter -> int -> int -> unit
-val pdbDefineSequencePoints: PdbWriter -> PdbDocumentWriter -> (int * int * int * int * int) array -> unit
+val pdbDefineSequencePoints: PdbWriter -> PdbDocumentWriter -> int -> int[] -> int[] -> int[] -> int[] -> int[] -> unit
 val pdbGetDebugInfo: PdbWriter -> idd
 
 //---------------------------------------------------------------------
