@@ -637,6 +637,19 @@ namespace System
 #else   
 #endif
 
+namespace Microsoft.FSharp.Core
+
+    open System
+    open Microsoft.FSharp.Core
+
+    module Resources =
+
+        let addressOpNotFirstClass () = SR.GetString(SR.addressOpNotFirstClass)
+        let noNegateMinValue () = SR.GetString(SR.noNegateMinValue)
+        let inputSequenceEmpty () = SR.GetString(SR.inputSequenceEmpty)
+        let inputArrayEmpty () = SR.GetString(SR.arrayWasEmpty)
+        let inputMustBeNonNegative () = SR.GetString(SR.inputMustBeNonNegative)
+
 
 namespace Microsoft.FSharp.Core
 
@@ -687,13 +700,13 @@ namespace Microsoft.FSharp.Core
             [<NoDynamicInvocation>]
             let inline (~&)  (x : 'T) : 'T byref     = 
                 ignore x // pretend the variable is used
-                let e = new System.ArgumentException(ErrorStrings.AddressOpNotFirstClassString) 
+                let e = System.ArgumentException(Resources.addressOpNotFirstClass ()) 
                 (# "throw" (e :> System.Exception) : 'T byref #)
                  
             [<NoDynamicInvocation>]
             let inline (~&&) (x : 'T) : nativeptr<'T> = 
                 ignore x // pretend the variable is used
-                let e = new System.ArgumentException(ErrorStrings.AddressOpNotFirstClassString) 
+                let e = System.ArgumentException(Resources.addressOpNotFirstClass ()) 
                 (# "throw" (e :> System.Exception) : nativeptr<'T> #)     
           
         
@@ -5521,7 +5534,7 @@ namespace Microsoft.FSharp.Core
                     let x : nativeint = retype x in 
                     if x >= 0n then x else 
                     let res = -x in 
-                    if res < 0n then raise (System.OverflowException(ErrorStrings.NoNegateMinValueString))
+                    if res < 0n then raise (System.OverflowException(Resources.noNegateMinValue ()))
                     res
                  when ^T : int16       = let x : int16     = retype x in System.Math.Abs(x)
                  when ^T : sbyte       = let x : sbyte     = retype x in System.Math.Abs(x)

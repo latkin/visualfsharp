@@ -764,6 +764,24 @@ namespace Microsoft.FSharp.Core
     type int64<[<Measure>] 'Measure> = int64
 
 
+    /// <summary>For compiler use only</summary>
+    module Resources =
+
+        [<CompilerMessage("This value is for use by compiled F# code and should not be used directly", 1204, IsHidden=true)>]
+        val inputSequenceEmpty : unit -> string
+
+        [<CompilerMessage("This value is for use by compiled F# code and should not be used directly", 1204, IsHidden=true)>]
+        val inputArrayEmpty : unit -> string
+        
+        [<CompilerMessage("This value is for use by compiled F# code and should not be used directly", 1204, IsHidden=true)>]
+        val addressOpNotFirstClass : unit -> string
+
+        [<CompilerMessage("This value is for use by compiled F# code and should not be used directly", 1204, IsHidden=true)>]
+        val noNegateMinValue : unit -> string
+                
+        [<CompilerMessage("This value is for use by compiled F# code and should not be used directly", 1204, IsHidden=true)>]
+        val inputMustBeNonNegative : unit -> string
+
     /// <summary>Language primitives associated with the F# language</summary>
     module LanguagePrimitives =
 
