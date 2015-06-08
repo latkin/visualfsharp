@@ -672,14 +672,14 @@ namespace Microsoft.FSharp.Core
 
         module (* internal *) ErrorStrings =
             // inline functions cannot call GetString, so we must make these bits public
-            let AddressOpNotFirstClassString = SR.GetString(SR.addressOpNotFirstClass)
-            let NoNegateMinValueString = SR.GetString(SR.noNegateMinValue)
+            let AddressOpNotFirstClassString = Resources.addressOpNotFirstClass ()
+            let NoNegateMinValueString = Resources.noNegateMinValue ()
             // needs to be public to be visible from inline function 'average' and others
-            let InputSequenceEmptyString = SR.GetString(SR.inputSequenceEmpty) 
+            let InputSequenceEmptyString = Resources.inputSequenceEmpty ()
             // needs to be public to be visible from inline function 'average' and others
-            let InputArrayEmptyString = SR.GetString(SR.arrayWasEmpty) 
+            let InputArrayEmptyString = Resources.inputArrayEmpty ()
             // needs to be public to be visible from inline function 'average' and others
-            let InputMustBeNonNegativeString = SR.GetString(SR.inputMustBeNonNegative)
+            let InputMustBeNonNegativeString = Resources.inputMustBeNonNegative ()
             
         [<CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1034:NestedTypesShouldNotBeVisible")>]  // nested module OK              
         module IntrinsicOperators =        
