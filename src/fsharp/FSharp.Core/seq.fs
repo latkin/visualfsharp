@@ -1449,11 +1449,6 @@ namespace Microsoft.FSharp.Collections
 
             let dict = Dictionary<_,ResizeArray<_>> comparer
 
-            // Previously this was 1, but I think this is rather stingy, considering that we are alreadying paying
-            // for at least a key, the ResizeArray reference, which includes an array reference, an Entry in the
-            // Dictionary, plus any empty space in the Dictionary of unfilled hash buckets.
-            let minimumBucketSize = 4
-
             // Build the groupings
             seq |> iter (fun v -> 
                 let key = keyf v
@@ -1461,13 +1456,13 @@ namespace Microsoft.FSharp.Collections
                 match dict.TryGetValue (key, &prev) with
                 | true -> prev.Add v
                 | false ->
-                    let prev = ResizeArray minimumBucketSize
+                    let prev = ResizeArray()
                     dict.[key] <- prev
                     prev.Add v)
 
             // Trim the size of each result group, don't trim very small buckets, as excessive work, and garbage for 
             // minimal gain 
-            dict |> iter (fun group -> if group.Value.Count > minimumBucketSize then group.Value.TrimExcess())
+            dict |> iter (fun group -> if group.Value.Count > 4 then group.Value.TrimExcess())
                          
             // Return the sequence-of-sequences. Don't reveal the 
             // internal collections: just reveal them as sequences
