@@ -6,6 +6,7 @@ namespace Microsoft.FSharp.Collections
     open System.Diagnostics
     open System.Collections.Generic
     open System.Diagnostics.CodeAnalysis
+    open System.Reflection
     open Microsoft.FSharp.Core
     open Microsoft.FSharp.Core.CompilerServices
     open Microsoft.FSharp.Collections
@@ -14,8 +15,7 @@ namespace Microsoft.FSharp.Collections
     open Microsoft.FSharp.Core.SR
 #if FX_NO_ICLONEABLE
     open Microsoft.FSharp.Core.ICloneableExtensions            
-#else
-#endif    
+#endif
 
     /// Basic operations on arrays
     [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
@@ -197,13 +197,13 @@ namespace Microsoft.FSharp.Collections
         [<CompiledName("CountBy")>]
         let countBy (projection:'T->'Key) (array:'T[]) =
             checkNonNull "array" array
-#if FX_ATLEAST_40
+#if FX_RESHAPED_REFLECTION
+            if (typeof<'Key>).GetTypeInfo().IsValueType
+#else
             if typeof<'Key>.IsValueType
+#endif
                 then countByValueType projection array
                 else countByRefType   projection array
-#else
-            countByRefType projection array
-#endif
 
         [<CompiledName("Append")>]
         let append (array1:'T[]) (array2:'T[]) = 
@@ -456,13 +456,13 @@ namespace Microsoft.FSharp.Collections
         [<CompiledName("GroupBy")>]
         let groupBy (keyf:'T->'Key) (array:'T[]) =
             checkNonNull "array" array
-#if FX_ATLEAST_40
+#if FX_RESHAPED_REFLECTION
+            if (typeof<'Key>).GetTypeInfo().IsValueType
+#else
             if typeof<'Key>.IsValueType
+#endif
                 then groupByValueType keyf array
                 else groupByRefType   keyf array
-#else
-            groupByRefType keyf array
-#endif
 
         [<CompiledName("Pick")>]
         let pick f (array: _[]) = 

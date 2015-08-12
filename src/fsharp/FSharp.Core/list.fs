@@ -3,6 +3,7 @@
 namespace Microsoft.FSharp.Collections
 
     open System.Diagnostics
+    open System.Reflection
     open Microsoft.FSharp.Core
     open Microsoft.FSharp.Core.Operators
     open Microsoft.FSharp.Core.LanguagePrimitives
@@ -65,13 +66,13 @@ namespace Microsoft.FSharp.Collections
 
         [<CompiledName("CountBy")>]
         let countBy (projection:'T->'Key) (list:'T list) =
-#if FX_ATLEAST_40
+#if FX_RESHAPED_REFLECTION
+            if (typeof<'Key>).GetTypeInfo().IsValueType
+#else
             if typeof<'Key>.IsValueType
+#endif
                 then countByValueType projection list
                 else countByRefType   projection list
-#else
-            countByRefType projection list
-#endif
 
         [<CompiledName("Map")>]
         let map f list = Microsoft.FSharp.Primitives.Basics.List.map f list
@@ -481,13 +482,13 @@ namespace Microsoft.FSharp.Collections
 
         [<CompiledName("GroupBy")>]
         let groupBy (keyf:'T->'Key) (list:'T list) =
-#if FX_ATLEAST_40
+#if FX_RESHAPED_REFLECTION
+            if (typeof<'Key>).GetTypeInfo().IsValueType
+#else
             if typeof<'Key>.IsValueType
+#endif
                 then groupByValueType keyf list
                 else groupByRefType   keyf list
-#else
-            groupByRefType keyf list
-#endif
 
         [<CompiledName("Partition")>]
         let partition p x = Microsoft.FSharp.Primitives.Basics.List.partition p x

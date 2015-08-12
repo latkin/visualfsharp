@@ -847,6 +847,7 @@ namespace Microsoft.FSharp.Collections
     open System.Diagnostics
     open System.Collections
     open System.Collections.Generic
+    open System.Reflection
     open Microsoft.FSharp.Core
     open Microsoft.FSharp.Core.LanguagePrimitives.IntrinsicOperators
     open Microsoft.FSharp.Core.Operators
@@ -1476,13 +1477,13 @@ namespace Microsoft.FSharp.Collections
 
         [<CompiledName("GroupBy")>]
         let groupBy (keyf:'T->'Key) (seq:seq<'T>) =
-#if FX_ATLEAST_40
+#if FX_RESHAPED_REFLECTION
+            if (typeof<'Key>).GetTypeInfo().IsValueType
+#else
             if typeof<'Key>.IsValueType
+#endif
                 then mkDelayedSeq (fun () -> groupByValueType keyf seq)
                 else mkDelayedSeq (fun () -> groupByRefType   keyf seq)
-#else
-            mkDelayedSeq (fun () -> groupByRefType keyf seq)
-#endif
 
         [<CompiledName("Distinct")>]
         let distinct source =
@@ -1561,13 +1562,13 @@ namespace Microsoft.FSharp.Collections
         let countBy (keyf:'T->'Key) (source:seq<'T>) =
             checkNonNull "source" source
 
-#if FX_ATLEAST_40
+#if FX_RESHAPED_REFLECTION
+            if (typeof<'Key>).GetTypeInfo().IsValueType
+#else
             if typeof<'Key>.IsValueType
+#endif
                 then mkDelayedSeq (fun () -> countByValueType keyf source)
                 else mkDelayedSeq (fun () -> countByRefType   keyf source)
-#else
-            mkDelayedSeq (fun () -> countByRefType   keyf source)
-#endif
 
         [<CompiledName("Sum")>]
         let inline sum (source: seq< (^a) >) : ^a = 

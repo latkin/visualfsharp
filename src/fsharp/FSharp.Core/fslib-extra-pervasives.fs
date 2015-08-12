@@ -8,6 +8,7 @@ module ExtraTopLevelOperators =
     open System.Collections.Generic
     open System.IO
     open System.Diagnostics
+    open System.Reflection
     open Microsoft.FSharp
     open Microsoft.FSharp.Core
     open Microsoft.FSharp.Core.Operators
@@ -94,13 +95,13 @@ module ExtraTopLevelOperators =
 
     [<CompiledName("CreateDictionary")>]
     let dict (l:seq<'Key*'T>) =
-#if FX_ATLEAST_40
+#if FX_RESHAPED_REFLECTION
+        if (typeof<'Key>).GetTypeInfo().IsValueType
+#else
         if typeof<'Key>.IsValueType
+#endif
             then dictValueType l
             else dictRefType   l
-#else
-        dictRefType l
-#endif
 
     let getArray (vals : seq<'T>) = 
         match vals with
